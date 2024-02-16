@@ -1,0 +1,21 @@
+{
+  "name": "yunzai-images-api",
+  "version": "1.0.0",
+  "description": "API for Yunzai Images",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "keywords": [
+    "yunzai",
+    "images",
+    "api"
+  ],
+  "author": "Your Name",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+  }
+}
