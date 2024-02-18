@@ -62,7 +62,7 @@ console.log('Folder Loaded: \n' + routes());
 app.get('/*', (req, res) => {
     let route = routes();
     const _path = decodeURIComponent(req.path.slice(1));
-    if ( _path === '/') {
+    if ( _path === '') {
         console.log('New Request at root')
         res.sendFile( pickImg( pickName() ) );
         return;
