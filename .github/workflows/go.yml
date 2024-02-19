@@ -61,7 +61,7 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         path: result
-        
+        tag_name: release
     - uses: softprops/action-gh-release@v1
       with:
         files: result/*
