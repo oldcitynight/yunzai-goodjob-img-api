@@ -53,6 +53,7 @@ jobs:
         name: imgapi.exe
         path: imgapi.exe
 
+  # 实在没搞懂，这里直接抄的 https://github.com/Hoshinonyaruko/Gensokyo 的答案
   release:
     name: release
     needs: build
@@ -70,12 +71,29 @@ jobs:
         tag_name: ${{ github.ref_name }}
         release_name: Release ${{ github.ref_name }}
         draft: false
-
-    - name: upload-release
-      id: upload-release
+        
+    - name: Upload Release Assets
       run: |
-        for f in result/*; do
-          GITHUB_UPLOAD_URL=$(echo "${{ steps.create_release.outputs.upload_url }}" | sed 's/\?.*//')
-          name=$(basename "$f")
-          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" --data-binary @"${f}" "${GITHUB_UPLOAD_URL}?name=${name}&label=${name}"
+        for dir in output/*; do
+          if [ -d "$dir" ]; then
+            for file in "$dir"/*; do
+              if [ -f "$file" ]; then
+                asset_name=$(basename "$file")
+                echo "Uploading ${asset_name}"
+                GITHUB_UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}
+                GITHUB_UPLOAD_URL="${GITHUB_UPLOAD_URL%\{*}"
+                GITHUB_UPLOAD_URL="${GITHUB_UPLOAD_URL%\?*}"
+                curl \
+                -X POST \
+                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Content-Type: application/octet-stream" \
+                --data-binary @"${file}" \
+                "${GITHUB_UPLOAD_URL}?name=${asset_name}&label=${asset_name}"
+              else
+                echo "Expected a file in ${dir}, but found something else."
+              fi
+            done
+          else
+            echo "Expected ${dir} to be a directory."
+          fi
         done
