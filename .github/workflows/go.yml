@@ -70,4 +70,7 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        files: /home/runner/work/yunzai-goodjob-img-api/yunzai-goodjob-img-api/artifacts/*
+        files: |
+          /home/runner/work/yunzai-goodjob-img-api/yunzai-goodjob-img-api/artifacts/imgapi-amd64
+          /home/runner/work/yunzai-goodjob-img-api/yunzai-goodjob-img-api/artifacts/imgapi-arm64
+          /home/runner/work/yunzai-goodjob-img-api/yunzai-goodjob-img-api/artifacts/imgapi.exe
