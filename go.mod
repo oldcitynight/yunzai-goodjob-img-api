@@ -1,6 +1,6 @@
 module imgapi
 
-go 1.21.4
+go 1.20
 
 require github.com/fasthttp/router v1.4.22
 
