@@ -12,6 +12,7 @@ on:
 jobs:
 
   build:
+    name: build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -39,18 +40,30 @@ jobs:
         GOARCH: amd64
       run: go build -o imgapi.exe
 
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
+  artifacts:
+    name: artifacts
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/upload-artifact@v2
       with:
-        name: results
-        path: |
-          imgapi-amd64
-          imgapi-arm64
-          imgapi.exe
+        name: imgapi-amd64
+        path: imgapi-amd64
+    - uses: actions/upload-artifact@v2
+      with:
+        name: imgapi-arm64
+        path: imgapi-arm64
+    - uses: actions/upload-artifact@v2
+      with:
+        name: imgapi.exe
+        path: imgapi.exe
 
-    - name: Create Release
-      id: create_release
-      uses: softprops/action-gh-release@v1
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: softprops/action-gh-release@v1
       with:
         files: |
           imgapi-amd64
