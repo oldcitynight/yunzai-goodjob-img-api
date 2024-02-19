@@ -54,23 +54,51 @@ jobs:
         name: imgapi.exe
         path: imgapi.exe
   
+  # 实在弄不懂，直接抄的 https://github.com/Hoshinonyaruko/Gensokyo 的答案
   release:
     name: release
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - name: dl artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
-    
-    - name:
-      run: ls -a /home/runner/work/yunzai-goodjob-img-api/yunzai-goodjob-img-api/artifacts
+    steps:
 
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          /home/runner/work/yunzai-goodjob-img-api/yunzai-goodjob-img-api/artifacts/imgapi-amd64
-          /home/runner/work/yunzai-goodjob-img-api/yunzai-goodjob-img-api/artifacts/imgapi-arm64
-          /home/runner/work/yunzai-goodjob-img-api/yunzai-goodjob-img-api/artifacts/imgapi.exe
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: output
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+
+      - name: Upload Release Assets
+        run: |
+          for dir in output/*; do
+            if [ -d "$dir" ]; then
+              for file in "$dir"/*; do
+                if [ -f "$file" ]; then
+                  asset_name=$(basename "$file")
+                  echo "Uploading ${asset_name}"
+                  GITHUB_UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}
+                  GITHUB_UPLOAD_URL="${GITHUB_UPLOAD_URL%\{*}"
+                  GITHUB_UPLOAD_URL="${GITHUB_UPLOAD_URL%\?*}"
+                  curl \
+                  -X POST \
+                  -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                  -H "Content-Type: application/octet-stream" \
+                  --data-binary @"${file}" \
+                  "${GITHUB_UPLOAD_URL}?name=${asset_name}&label=${asset_name}"
+                else
+                  echo "Expected a file in ${dir}, but found something else."
+                fi
+              done
+            else
+              echo "Expected ${dir} to be a directory."
+            fi
+          done
