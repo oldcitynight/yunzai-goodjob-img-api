@@ -44,24 +44,20 @@ jobs:
       with:
         name: imgapi-amd64
         path: imgapi-amd64
+    
     - uses: actions/upload-artifact@v2
       with:
         name: imgapi-arm64
         path: imgapi-arm64
+    
     - uses: actions/upload-artifact@v2
       with:
         name: imgapi.exe
         path: imgapi.exe
-
-  release:
-    name: release
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/download-artifact@v2
-      with:
-        path: result
-        tag_name: release
-    - uses: softprops/action-gh-release@v1
-      with:
-        files: result/*
+    
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
