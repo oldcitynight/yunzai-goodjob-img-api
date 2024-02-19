@@ -53,6 +53,16 @@ jobs:
       with:
         name: imgapi.exe
         path: imgapi.exe
+  
+  release:
+    name: release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: dl artifacts
+      uses: actions/download-artifact@v2
+      with:
+        path: artifacts
     
     - name: Checkout
       uses: actions/checkout@v3
@@ -60,7 +70,4 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          imgapi-amd64
-          imgapi-arm64
-          imgapi.exe
+        files: artifacts/*
