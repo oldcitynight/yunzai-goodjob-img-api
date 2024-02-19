@@ -62,14 +62,21 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         path: result
+    - name: install-jq
+      run: apt-get install jq
+    - name: get-release
+      run: |
+        RELEASE_LATEST=$(curl -s "https://api.github.com/repos/yunzai-goodjob-img-api/releases/tags/release" | jq -r '.name')
+        RELEASE_LATEST=$(expr $RELEASE_LATEST + 1)
+        echo "RELEASE_LATEST=$RELEASE_LATEST" >> $GITHUB_ENV
     - name: create-release
       id: create-release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: TAG ${{ github.sha }}
-        release_name: Release ${{ github.sha }}
+        tag_name: release
+        release_name: Release ${{ env.RELEASE_LATEST }}
         draft: false
         
     - name: Upload Release Assets
