@@ -53,7 +53,6 @@ jobs:
         name: imgapi.exe
         path: imgapi.exe
 
-  # 实在没搞懂，这里直接抄的 https://github.com/Hoshinonyaruko/Gensokyo 的答案
   release:
     name: release
     needs: build
@@ -62,45 +61,7 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         path: result
-    - name: install-jq
-      run: apt-get install jq
-    - name: get-release
-      run: |
-        RELEASE_LATEST=$(curl -s "https://api.github.com/repos/yunzai-goodjob-img-api/releases/tags/release" | jq -r '.name')
-        RELEASE_LATEST=$(expr $RELEASE_LATEST + 1)
-        echo "RELEASE_LATEST=$RELEASE_LATEST" >> $GITHUB_ENV
-    - name: create-release
-      id: create-release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: release
-        release_name: Release ${{ env.RELEASE_LATEST }}
-        draft: false
         
-    - name: Upload Release Assets
-      run: |
-        for dir in result/*; do
-          if [ -d "$dir" ]; then
-            for file in "$dir"/*; do
-              if [ -f "$file" ]; then
-                asset_name=$(basename "$file")
-                echo "Uploading ${asset_name}"
-                GITHUB_UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}
-                GITHUB_UPLOAD_URL="${GITHUB_UPLOAD_URL%\{*}"
-                GITHUB_UPLOAD_URL="${GITHUB_UPLOAD_URL%\?*}"
-                curl \
-                -X POST \
-                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                -H "Content-Type: application/octet-stream" \
-                --data-binary @"${file}" \
-                "${GITHUB_UPLOAD_URL}?name=${asset_name}&label=${asset_name}"
-              else
-                echo "Expected a file in ${dir}, but found something else."
-              fi
-            done
-          else
-            echo "Expected ${dir} to be a directory."
-          fi
-        done
+    - uses: softprops/action-gh-release@v1
+      with:
+        files: result/*
