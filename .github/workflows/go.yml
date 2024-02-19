@@ -68,13 +68,13 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.sha }}
+        tag_name: TAG ${{ github.sha }}
         release_name: Release ${{ github.sha }}
         draft: false
         
     - name: Upload Release Assets
       run: |
-        for dir in output/*; do
+        for dir in result/*; do
           if [ -d "$dir" ]; then
             for file in "$dir"/*; do
               if [ -f "$file" ]; then
