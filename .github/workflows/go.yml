@@ -66,14 +66,8 @@ jobs:
     
     - name: Checkout
       uses: actions/checkout@v3
-    
-    - name: check
-      run: ls
-    
-    - name: check2
-      run: ls artifacts
 
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        files: artifacts/*
+        files: /home/runner/work/yunzai-goodjob-img-api/yunzai-goodjob-img-api/artifacts/*
