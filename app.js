@@ -111,6 +111,8 @@ app.get('/*', (req, res) => {
         res.send({
             '用法': '发送 GET 请求时会从词库随机抽取一个图片，如果需要指定某个人则可以 GET 对应地址',
             '请求方式': '发送 GET 请求获取任意图片，发送 GET 请求到对应地址获取某个人的图片',
+            '别名处理': '以 https://gitee.com/SmallK111407/useless-plugin/blob/main/model/aliasData/alias.json 中的别名为准',
+            '快速获得别名映射表': 'GET https://img-api.justrobot.dev/AliasMap',
             '示例': 'GET https://img-api.justrobot.dev/win11 来获得 win11 的随机图片',
             '更新频率': 'API 图库会在每天的 00:05 左右重启进行图库更新，耗时 10 秒以内',
             '速率限制': '图库有访问限制，单 IP 每秒限制 1 次，每 10 秒限制 20 次(包含无效访问), 超过任意限制均返回 429 错误',
