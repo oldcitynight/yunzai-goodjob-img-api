@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const exec = require('child_process').exec;
 
+const request = require('sync-request');
 const app = express();
 const img_path = __dirname + '/goodjob-img/resources/';
 const img_dict = {};
@@ -10,9 +11,12 @@ const randint = (num) => {
     return Math.floor(Math.random() * num);
 };
 
-const routes = () => {
-    return Object.keys(img_dict);
-};
+const alia_json = JSON.parse(
+    request(
+        'GET',
+        'https://gitee.com/SmallK111407/useless-plugin/raw/main/model/aliasData/alias.json'
+    ).getBody('utf-8')
+);
 
 const isDir = (path) => {
     return fs.statSync(img_path + path).isDirectory();
@@ -28,15 +32,16 @@ const lenPath = (path) => {
     return conut;
 };
 
-const pickImg = ( name ) => {
-    let path = img_path + name + '/' + randint(img_dict[name]);
-    if ( name === '茄子' ) { path += '.gif' } else { path += '.png' };
+const pickImg = ( alia ) => {
+    point_name = alias_map[alia];
+    let path = img_path + point_name + '/' + randint(img_dict[point_name]);
+    if ( point_name === '茄子' ) { path += '.gif' } else { path += '.png' };
     console.log('200 OK:' + path)
     return path;
 };
 
 const pickName = () => {
-    let name = routes();
+    let name = Object.keys(img_dict);
     return name[randint(name.length)];
 };
 
@@ -57,6 +62,40 @@ const update = () => {
 };
 
 ReadPath();
+
+const get_alias_map = () => {
+    let map = {};
+    for (let key in alia_json) {
+        map[key] = key;
+        for (let value of alia_json[key]) {
+            map[value] = key;
+        };
+    };
+    
+    for (let key in map) {
+        if ( key in Object.keys(img_dict) ) {
+            continue
+        } else {
+            delete map[key];
+        };
+    };
+    for (let key in img_dict) {
+        if ( key in Object.keys(map) ) {
+            continue
+        } else {
+            map[key] = key;
+        };
+    };
+
+    return map;
+};
+
+const alias_map = get_alias_map();
+
+const routes = () => {
+    return Object.keys(alias_map);
+};
+
 console.log('Folder Loaded: \n' + routes());
 
 app.get('/*', (req, res) => {
@@ -79,16 +118,24 @@ app.get('/*', (req, res) => {
         return;
     };
 
+    if ( _path == 'AliasMap' ) {
+        res.send(alias_map);
+        return;
+    };
+
     if ( route.includes(_path) ) {
         console.log('New Request at ' + _path);
         res.sendFile(pickImg(_path));
+        return;
     } else {
         console.log('New Request at Invalid Path ' + _path);
         res.sendStatus(404);
-    }
-    return;
+        return;
+    };
 });
+
+update();
 
 app.listen(10808, () => {
     console.log('Server Listening at 10808')
-})
+});

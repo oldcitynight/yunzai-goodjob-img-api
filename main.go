@@ -2,7 +2,9 @@ package main
 
 // 导入依赖
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -16,6 +18,7 @@ import (
 // 定义全局变量
 var img_path = "./goodjob-img/resources"
 var img_dict = make(map[string]int)
+var aliasMap map[string]string
 var name_list []string
 var app *gin.Engine
 
@@ -26,7 +29,7 @@ type ServeHandler struct {
 
 // 定义构造函数
 func NewServeHandler(name string) *ServeHandler {
-	return &ServeHandler{name: name}
+	return &ServeHandler{name: aliasMap[name]}
 }
 
 // 定义 Call 方法
@@ -37,6 +40,46 @@ func (sf *ServeHandler) Call(_gin *gin.Context) {
 	} else {
 		_gin.File(path)
 	}
+}
+
+// 获取别名映射
+func getAliasMap() map[string]string {
+	resp, err := http.Get("https://gitee.com/SmallK111407/useless-plugin/raw/main/model/aliasData/alias.json")
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	var aliasData map[string][]string
+	err = json.Unmarshal(body, &aliasData)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	aliasMap := make(map[string]string)
+
+	for k, v := range aliasData {
+		aliasMap[k] = k
+		for _, alias := range v {
+			aliasMap[alias] = k
+		}
+	}
+	for k := range img_dict {
+		if _, exists := aliasMap[k]; exists {
+		} else {
+			aliasMap[k] = k
+		}
+	}
+
+	return aliasMap
 }
 
 // 随机抓取图片
@@ -85,8 +128,6 @@ func dealPath(_ string, info os.FileInfo, err error) error {
 		// 更新字典, 注册路由
 		img_dict[info.Name()] = lenPath(img_path + "/" + info.Name())
 		name_list = append(name_list, info.Name())
-		handler := NewServeHandler(info.Name())
-		app.GET("/"+info.Name(), handler.Call)
 	}
 	return nil
 }
@@ -94,6 +135,13 @@ func dealPath(_ string, info os.FileInfo, err error) error {
 // 加载文件夹
 func loadPath() {
 	filepath.Walk(img_path, dealPath)
+}
+
+// 加载路由节点
+func LoadPoints() {
+	for k := range aliasMap {
+		app.GET("/"+k, NewServeHandler(k).Call)
+	}
 }
 
 // 随机抽取名字
@@ -138,9 +186,13 @@ func main() {
 	updateImg()
 	// 加载文件夹
 	loadPath()
+	// 获取别名映射
+	aliasMap = getAliasMap()
 	// 注册固定路由节点
 	app.GET("/", direct)
 	app.GET("/HELPS", help)
+	// 加载路由节点
+	LoadPoints()
 	// Gin, 启动!
 	app.Run(":10808")
 }
