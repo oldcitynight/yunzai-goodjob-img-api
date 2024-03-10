@@ -83,7 +83,7 @@ def load_path() -> None:
     alia_dict.update(
         {_name: _name for _name, _ in img_dict.items() if _name not in list(alia_dict.keys)}
     )
-    [alia_dict.pop(_name) for _name, _ in alia_dict.items() if _name not in list(img_dict.keys())]
+    [alia_dict.pop(_name) for _name in [_name for _name, _ in alia_dict.items() if _name not in list(img_dict.keys())]]
     
     # 注册路由节点
     [register(_alia) for _alia, _ in alia_dict.items()]
