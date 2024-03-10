@@ -2,14 +2,11 @@ const express = require('express');
 const fs = require('fs');
 const exec = require('child_process').exec;
 
+const lodash = require('lodash');
 const request = require('sync-request');
 const app = express();
 const img_path = __dirname + '/goodjob-img/resources/';
 const img_dict = {};
-
-const randint = (num) => {
-    return Math.floor(Math.random() * num);
-};
 
 const alia_json = JSON.parse(
     request(
@@ -22,20 +19,9 @@ const isDir = (path) => {
     return fs.statSync(img_path + path).isDirectory();
 };
 
-const lenPath = (path) => {
-    let conut = 0
-    files = fs.readdirSync(path);
-    files.forEach(file => {
-        if ( !( file.endsWith('.png') || file.endsWith('.gif') ) ) { return };
-        conut += 1;
-    });
-    return conut;
-};
-
 const pickImg = ( alia ) => {
     point_name = alias_map[alia];
-    let path = img_path + point_name + '/' + randint(img_dict[point_name]);
-    if ( point_name === '茄子' ) { path += '.gif' } else { path += '.png' };
+    let path = img_path + point_name + '/' + lodash.sample(img_dict[point_name]);
     console.log('200 OK:' + path)
     return path;
 };
@@ -46,9 +32,11 @@ const pickName = () => {
 };
 
 const ReadPath = () => {
-    const files = fs.readdirSync(img_path);
-    files.forEach(file => {
-            if ( isDir(file) ) { img_dict[file] = lenPath(img_path + file) };
+    const dirs = fs.readdirSync(img_path);
+    dirs.forEach(dir => {
+            if ( isDir(dir) ) { 
+                img_dict[dir] = fs.readdirSync(img_path + dir);
+            };
         }
     );
 };
@@ -84,7 +72,7 @@ const routes = () => {
     return Object.keys(alias_map);
 };
 
-console.log('Folder Loaded: \n' + routes());
+console.log('Folder Loaded:');
 
 app.get('/*', (req, res) => {
     let route = routes();

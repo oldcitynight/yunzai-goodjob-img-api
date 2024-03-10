@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/gin-gonic/gin"
@@ -17,7 +16,7 @@ import (
 
 // 定义全局变量
 var img_path = "./goodjob-img/resources"
-var img_dict = make(map[string]int)
+var img_dict = make(map[string][]string)
 var aliasMap map[string]string
 var name_list []string
 var app *gin.Engine
@@ -86,47 +85,50 @@ func pickImg(name string) string {
 		fmt.Println(name, "not found")
 		return "404"
 	}
-	randNum := strconv.Itoa(gofakeit.Number(1, img_dict[name]) - 1)
-	// 茄子是 gif
-	if name == "茄子" {
-		return fmt.Sprintf("%s/%s/%s.gif", img_path, name, randNum)
-	} else {
-		return fmt.Sprintf("%s/%s/%s.png", img_path, name, randNum)
-	}
+	return fmt.Sprintf("%s/%s/%s", img_path, name, RandItem(img_dict[name]))
 }
 
-// 获取文件夹下文件数量
-func lenPath(path string) int {
-	count := 0
+// 从列表中随机抽取元素
+func RandItem(list []string) string {
+	return list[gofakeit.Number(1, len(list))-1]
+}
 
-	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			count++
-		}
-		return nil
-	})
+// 获得文件夹下的文件列表
+func getFileList(Name string) ([]string, error) {
+	dirName := img_path + "/" + Name
+	files, err := os.ReadDir(dirName)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
-	return count
+	var fileList []string
+	for _, file := range files {
+		if !file.IsDir() {
+			fileList = append(fileList, file.Name())
+		}
+	}
+
+	return fileList, nil
 }
 
 // 遍历文件夹注册路由点等
 func dealPath(_ string, info os.FileInfo, err error) error {
+	if err != nil {
+		return err
+	}
 	if info.IsDir() {
 		// 我也不知道为啥，不过这样写就不会崩了
 		if info.Name() == "resources" {
 			return nil
 		}
-		// 更新字典, 注册路由
-		img_dict[info.Name()] = lenPath(img_path + "/" + info.Name())
+		// 更新字典
+		img_dict[info.Name()], err = getFileList(info.Name())
+		if err != nil {
+			return err
+		}
 		name_list = append(name_list, info.Name())
 	}
-	return nil
+	return err
 }
 
 // 加载文件夹

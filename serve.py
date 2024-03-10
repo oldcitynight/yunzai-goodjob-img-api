@@ -57,22 +57,11 @@ def pick_img(
             status_code=404,
             detail="Name Not Found"
         )
-    _i = random.randint(
-        0,
-        img_dict[name]
-        )
-
-    # 茄子是 gif
-    if name == '茄子':
-        return FileResponse(
-            path=os.path.join(img_path, name, f'{_i}.gif'),
-            media_type='image/gif',
-            status_code=200
-        )
-
+    _i = random.choice(img_dict[name])
+    
     return FileResponse(
-        path=os.path.join(img_path, name, f'{_i}.png'),
-        media_type='image/png',
+        path=os.path.join(img_path, name, _i),
+        media_type='image/*',
         status_code=200
     )
 
@@ -80,10 +69,11 @@ def pick_img(
 def load_path() -> None:
     global img_dict, img_path, alia_dict
     folder_list = os.listdir(img_path)
-    img_dict = { _name: len( os.listdir( os.path.join(img_path, _name) ) ) - 1 for _name in folder_list }
+    img_dict = { _name: os.listdir( os.path.join(img_path, _name) ) for _name in folder_list }
     
+    alias_map()
     alia_dict.update(
-        {_name: _name for _name, _ in img_dict.items() if _name not in list(alia_dict.keys)}
+        {_name: _name for _name, _ in img_dict.items() if _name not in list(alia_dict.keys())}
     )
     
     # 注册路由节点
@@ -94,7 +84,6 @@ def load_point() -> None:
     # 我也不知道我为啥把这个扔这里了
     os.system('cd ./goodjob-img && git pull -f')
     # 加载、注册路由节点
-    alias_map()
     load_path()
 
 # 随机一个名字
