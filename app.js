@@ -66,24 +66,12 @@ ReadPath();
 const get_alias_map = () => {
     let map = {};
     for (let key in alia_json) {
+        if (!key in Object.keys(img_dict)) {
+            continue;
+        };
         map[key] = key;
         for (let value of alia_json[key]) {
             map[value] = key;
-        };
-    };
-    
-    for (let key in map) {
-        if ( key in Object.keys(img_dict) ) {
-            continue
-        } else {
-            delete map[key];
-        };
-    };
-    for (let key in img_dict) {
-        if ( key in Object.keys(map) ) {
-            continue
-        } else {
-            map[key] = key;
         };
     };
 

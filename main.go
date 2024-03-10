@@ -67,15 +67,12 @@ func getAliasMap() map[string]string {
 	aliasMap := make(map[string]string)
 
 	for k, v := range aliasData {
+		if _, exitsts := img_dict[k]; !exitsts {
+			continue
+		}
 		aliasMap[k] = k
 		for _, alias := range v {
 			aliasMap[alias] = k
-		}
-	}
-	for k := range img_dict {
-		if _, exists := aliasMap[k]; exists {
-		} else {
-			aliasMap[k] = k
 		}
 	}
 

@@ -27,10 +27,12 @@ def load_alias() -> dict:
 def alias_map() -> None:
     _alias = load_alias()
     global alia_dict
-    alia_dict = { _name: _name for _name, _ in _alias.items() }
-    alia_dict.update(
-        { _alia: _name for _name, _alia_list in _alias.items() for _alia in _alia_list }
-    )
+    for _name, _alias in _alias.items():
+        if not _name in list(img_dict.keys()):
+            continue
+        alia_dict[_name] = _name
+        for _alia in _alias:
+            alia_dict[_alia] = _name
 
 # 用于动态构建 handler
 class ServeHandler:
@@ -83,7 +85,6 @@ def load_path() -> None:
     alia_dict.update(
         {_name: _name for _name, _ in img_dict.items() if _name not in list(alia_dict.keys)}
     )
-    [alia_dict.pop(_name) for _name in [_name for _name, _ in alia_dict.items() if _name not in list(img_dict.keys())]]
     
     # 注册路由节点
     [register(_alia) for _alia, _ in alia_dict.items()]
