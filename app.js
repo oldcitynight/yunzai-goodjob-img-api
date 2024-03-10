@@ -21,14 +21,22 @@ const isDir = (path) => {
 
 const pickImg = ( alia ) => {
     point_name = alias_map[alia];
-    let path = img_path + point_name + '/' + lodash.sample(img_dict[point_name]);
+    var file_name
+    while (file_name == undefined) {
+        file_name = lodash.sample(img_dict[point_name])
+    }
+    let path = img_path + point_name + '/' + file_name;
     console.log('200 OK:' + path)
     return path;
 };
 
 const pickName = () => {
     let name = Object.keys(img_dict);
-    return name[randint(name.length)];
+    var result;
+    while (result == undefined) {
+        result = lodash.sample(name);
+    };
+    return result;
 };
 
 const ReadPath = () => {
@@ -92,6 +100,7 @@ app.get('/*', (req, res) => {
             '示例': 'GET https://img-api.justrobot.dev/win11 来获得 win11 的随机图片',
             '更新频率': 'API 图库会在每天的 00:05 左右重启进行图库更新，耗时 10 秒以内',
             '速率限制': '图库有访问限制，单 IP 每秒限制 1 次，每 10 秒限制 20 次(包含无效访问), 超过任意限制均返回 429 错误',
+            '图片类型': '图片类型可能为 png 或 gif , 如果图库有其他图片类型会原样提供',
         });
         return;
     };

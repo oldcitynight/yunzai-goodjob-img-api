@@ -42,7 +42,7 @@ func (sf *ServeHandler) Call(_gin *gin.Context) {
 }
 
 // 获取别名映射
-func getAliasMap() map[string]string {
+func getAliasMap() error {
 	resp, err := http.Get("https://gitee.com/SmallK111407/useless-plugin/raw/main/model/aliasData/alias.json")
 	if err != nil {
 		fmt.Println(err)
@@ -63,19 +63,20 @@ func getAliasMap() map[string]string {
 		return nil
 	}
 
-	aliasMap := make(map[string]string)
+	AliasMap := make(map[string]string)
 
 	for k, v := range aliasData {
 		if _, exitsts := img_dict[k]; !exitsts {
 			continue
 		}
-		aliasMap[k] = k
+		AliasMap[k] = k
 		for _, alias := range v {
-			aliasMap[alias] = k
+			AliasMap[alias] = k
 		}
 	}
 
-	return aliasMap
+	aliasMap = AliasMap
+	return nil
 }
 
 // 随机抓取图片
@@ -90,7 +91,7 @@ func pickImg(name string) string {
 
 // 从列表中随机抽取元素
 func RandItem(list []string) string {
-	return list[gofakeit.Number(1, len(list))-1]
+	return list[gofakeit.Number(1, len(list)-1)]
 }
 
 // 获得文件夹下的文件列表
@@ -111,7 +112,7 @@ func getFileList(Name string) ([]string, error) {
 	return fileList, nil
 }
 
-// 遍历文件夹注册路由点等
+// 遍历文件夹更新字典
 func dealPath(_ string, info os.FileInfo, err error) error {
 	if err != nil {
 		return err
@@ -163,6 +164,7 @@ func help(_gin *gin.Context) {
 		"示例":        "GET https://img-api.justrobot.dev/win11 来获得 win11 的随机图片",
 		"更新频率":      "API 图库会在每天的 00:05 左右重启进行图库更新，耗时 10 秒以内",
 		"速率限制":      "图库有访问限制，单 IP 每秒限制 1 次，每 10 秒限制 20 次(包含无效访问), 超过任意限制均返回 429 错误",
+		"图片类型":      "图片类型可能为 png 或 gif , 如果图库有其他图片类型会原样提供",
 	})
 }
 
@@ -188,7 +190,8 @@ func main() {
 	// 加载文件夹
 	loadPath()
 	// 获取别名映射
-	aliasMap = getAliasMap()
+	getAliasMap()
+	fmt.Println(aliasMap)
 	// 注册固定路由节点
 	app.GET("/", direct)
 	app.GET("/HELPS", help)

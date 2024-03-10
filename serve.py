@@ -4,6 +4,7 @@ import os
 import uvicorn
 import requests
 import json
+import mimetypes
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
@@ -57,11 +58,12 @@ def pick_img(
             status_code=404,
             detail="Name Not Found"
         )
-    _i = random.choice(img_dict[name])
-    
+    file_path = os.path.join(img_path, name, random.choice(img_dict[name]))
+    file_types, _ = mimetypes.guess_type(file_path)
+
     return FileResponse(
-        path=os.path.join(img_path, name, _i),
-        media_type='image/*',
+        path=file_path,
+        media_type=file_types,
         status_code=200
     )
 
@@ -117,7 +119,8 @@ def help() -> dict:
         '快速获得别名映射表': 'GET https://img-api.justrobot.dev/AliasMap',
         '示例': 'GET https://img-api.justrobot.dev/win11 来获得 win11 的随机图片',
         '更新频率': 'API 图库会在每天的 00:05 左右重启进行图库更新，耗时 10 秒以内',
-        '速率限制': '图库有访问限制，单 IP 每秒限制 1 次，每 10 秒限制 20 次(包含无效访问), 超过任意限制均返回 429 错误'
+        '速率限制': '图库有访问限制，单 IP 每秒限制 1 次，每 10 秒限制 20 次(包含无效访问), 超过任意限制均返回 429 错误',
+        '图片类型': '图片类型可能为 png 或 gif , 如果图库有其他图片类型会原样提供'
     }
 
 def AliasMap() -> dict:
