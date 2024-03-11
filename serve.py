@@ -4,7 +4,6 @@ import os
 import uvicorn
 import requests
 import json
-import mimetypes
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
@@ -28,12 +27,12 @@ def load_alias() -> dict:
 def alias_map() -> None:
     _alias = load_alias()
     global alia_dict
-    for _name, _alias in _alias.items():
-        if not _name in list(img_dict.keys()):
-            continue
+
+    def _map_name(_name, _alias):
         alia_dict[_name] = _name
-        for _alia in _alias:
-            alia_dict[_alia] = _name
+        alia_dict.update({_alia: _name for _alia in _alias})
+    
+    [_map_name(_name, _alias) for _name, _alias in _alias.items() if _name in list(img_dict.keys())]
 
 # 用于动态构建 handler
 class ServeHandler:
@@ -46,6 +45,9 @@ class ServeHandler:
 
     def __call__(self) -> object:
         return pick_img(alia_dict[self.alia])
+    
+    def direct(self) -> object:
+        return direct_pick(alia_dict[self.alia])
 
 # 随机抓取图片
 def pick_img(
@@ -58,12 +60,31 @@ def pick_img(
             status_code=404,
             detail="Name Not Found"
         )
-    file_path = os.path.join(img_path, name, random.choice(img_dict[name]))
-    file_types, _ = mimetypes.guess_type(file_path)
+    
+    choose_result =random.choice(img_dict[name])
+    file_path = os.path.join(img_path, name, choose_result)
 
     return FileResponse(
         path=file_path,
-        media_type=file_types,
+        filename=name + choose_result,
+        status_code=200
+    )
+
+def direct_pick(
+        name: str
+) -> object:
+    global img_dict, img_path
+
+    if name not in img_dict:
+        raise HTTPException(
+            status_code=404,
+            detail="Name Not Found"
+        )
+    
+    file_path = os.path.join(img_path, name, random.choice(img_dict[name]))
+
+    return FileResponse(
+        path=file_path,
         status_code=200
     )
 
@@ -98,15 +119,26 @@ def random_name() -> str:
 # 注册路由节点
 def register(alia):
     global app
+    handler = ServeHandler(alia)
     app.add_api_route(
         f'/{alia}',
-        ServeHandler(alia),
+        handler,
+        methods=['GET']
+    )
+    app.add_api_route(
+        f'/direct/{alia}',
+        handler.direct,
         methods=['GET']
     )
 
 # '/' 节点的路由方法
 def direct() -> object:
     return pick_img(
+        random_name()
+    )
+
+def direct_direct() -> object:
+    return direct_pick(
         random_name()
     )
 
@@ -117,7 +149,7 @@ def help() -> dict:
         '请求方式': '发送 GET 请求获取任意图片，发送 GET 请求到对应地址获取某个人的图片',
         '别名处理': '以 https://gitee.com/SmallK111407/useless-plugin/blob/main/model/aliasData/alias.json 中的别名为准',
         '快速获得别名映射表': 'GET https://img-api.justrobot.dev/AliasMap',
-        '示例': 'GET https://img-api.justrobot.dev/oldcitynight 来获得 oldcitynight 的随机图片',
+        '示例': 'GET https://img-api.justrobot.dev/oldcitynight 来获得 oldcitynight  的随机图片',
         '更新频率': 'API 图库会在每天的 00:05 左右重启进行图库更新，耗时 10 秒以内',
         '速率限制': '图库有访问限制，单 IP 每秒限制 1 次，每 10 秒限制 20 次(包含无效访问), 超过任意限制均返回 429 错误',
         '图片类型': '图片类型可能为 png 或 gif , 如果图库有其他图片类型会原样提供'
@@ -133,6 +165,7 @@ def main() -> None:
     app.add_api_route('/HELPS', help, methods=['GET'])
     app.add_api_route('/AliasMap', AliasMap, methods=['GET'])
     app.add_api_route('/', direct, methods=['GET'])
+    app.add_api_route('/direct', direct_direct, methods=['GET'])
     uvicorn.run(app, host='0.0.0.0', port=10808)
 
 

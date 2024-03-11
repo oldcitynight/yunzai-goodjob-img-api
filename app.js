@@ -62,13 +62,14 @@ ReadPath();
 const get_alias_map = () => {
     let map = {};
     for (let key in alia_json) {
-        if (!key in Object.keys(img_dict)) {
+        if ( !Object.keys(img_dict).includes(key) ) {
             continue;
         };
         map[key] = key;
-        for (let value of alia_json[key]) {
+        alia_json[key].forEach( (value) => {
             map[value] = key;
-        };
+            return;
+        });
     };
 
     return map;
@@ -84,14 +85,17 @@ console.log('Folder Loaded:');
 
 app.get('/*', (req, res) => {
     let route = routes();
+
     const _path = decodeURIComponent(req.path.slice(1));
+    const result = _path.match(/^direct\/(.+)$/);
+
     if ( _path === '') {
         console.log('New Request at root')
-        res.sendFile( pickImg( pickName() ) );
+        res.download(pickImg(pickName()));
         return;
     };
 
-    if ( _path === '/HELPS' ) {
+    if ( _path === 'HELPS' ) {
         res.send({
             '用法': '发送 GET 请求时会从词库随机抽取一个图片，如果需要指定某个人则可以 GET 对应地址',
             '请求方式': '发送 GET 请求获取任意图片，发送 GET 请求到对应地址获取某个人的图片',
@@ -110,9 +114,23 @@ app.get('/*', (req, res) => {
         return;
     };
 
+    if ( _path == 'direct' ) {
+        res.sendFile(
+            pickImg(pickName())
+        );
+        return;
+    };
+
+    if ( result ) {
+        res.sendFile(
+            pickImg(result[1])
+        );
+        return;
+    }
+
     if ( route.includes(_path) ) {
         console.log('New Request at ' + _path);
-        res.sendFile(pickImg(_path));
+        res.download(pickImg(_path));
         return;
     } else {
         console.log('New Request at Invalid Path ' + _path);

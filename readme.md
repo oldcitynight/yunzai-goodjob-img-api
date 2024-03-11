@@ -3,6 +3,8 @@
 ## API 说明
 
 * 用法：发送 GET 请求时会从词库随机抽取一个图片，如果需要指定某个人则可以 GET 对应地址
+* 浏览器使用：额外增加一个 direct 根目录，比如<br>
+ `https://img-api.justrobot.dev/direct/` 相当于 `https://img-api.justrobot.dev/`
 * 请求方式：发送 GET 请求获取任意图片，发送 GET 请求到对应地址获取某个人的图片
 * 别名处理：以 `https://gitee.com/SmallK111407/useless-plugin/blob/main/model/aliasData/alias.json` 中的别名为准
 * 快速获得别名映射表：`GET https://img-api.justrobot.dev/AliasMap`
