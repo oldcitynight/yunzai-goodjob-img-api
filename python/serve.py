@@ -9,9 +9,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
 # 全局变量
-global img_dict, img_path, json_path, alia_dict, app
+global img_dict, img_path, json_path, alia_dict, app, responses_path
 img_path = './goodjob-img/resources'
 json_path = 'https://gitee.com/SmallK111407/useless-plugin/raw/main/model/aliasData/alias.json'
+responses_path = 'https://gitee.com/SmallK111407/goodjob-img'
 img_dict = {}
 alia_dict = {}
 app = FastAPI()
@@ -104,6 +105,9 @@ def load_path() -> None:
 
 # 导入图片，注册路由
 def load_point() -> None:
+    # 确认图片库存在
+    if not os.path.exists('./goodjob-img'):
+        os.system('git clone https://gitee.com/SmallK111407/goodjob-img.git')
     # 我也不知道我为啥把这个扔这里了
     os.system('cd ./goodjob-img && git pull -f')
     # 加载、注册路由节点

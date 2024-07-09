@@ -25,34 +25,34 @@ jobs:
       env: 
         GOOS: linux
         GOARCH: amd64
-      run: go build -o imgapi-amd64
+      run: cd golang && go build -o imgapi-amd64
 
     - name: linux-arm64
       env:
         GOOS: linux
         GOARCH: arm64
-      run: go build -o imgapi-arm64
+      run: cd golang && go build -o imgapi-arm64
 
     - name: windows-x64
       env:
         GOOS: windows
         GOARCH: amd64
-      run: go build -o imgapi.exe
+      run: cd golang && go build -o imgapi.exe
 
     - uses: actions/upload-artifact@v4
       with:
         name: imgapi-amd64
-        path: imgapi-amd64
+        path: ./golang/imgapi-amd64
     
     - uses: actions/upload-artifact@v4
       with:
         name: imgapi-arm64
-        path: imgapi-arm64
+        path: ./golang/imgapi-arm64
     
     - uses: actions/upload-artifact@v4
       with:
         name: imgapi.exe
-        path: imgapi.exe
+        path: ./golang/imgapi.exe
   
   # 实在弄不懂，直接抄的 https://github.com/Hoshinonyaruko/Gensokyo 的答案
   release:

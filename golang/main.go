@@ -16,6 +16,7 @@ import (
 
 // 定义全局变量
 var img_path = "./goodjob-img/resources"
+var res_path = "https://gitee.com/SmallK111407/goodjob-img"
 var img_dict = make(map[string][]string)
 var aliasMap map[string]string
 var name_list []string
@@ -170,6 +171,14 @@ func help(_gin *gin.Context) {
 
 // 从 git 更新图片
 func updateImg() {
+    // 确认图片资源存在
+    if _, err := os.Stat("./goodjob-img"); os.IsNotExist(err) {
+        cmd := exec.Command("git", "clone", res_path)
+        output, err := cmd.CombinedOutput()
+        if err != nil {
+            fmt.Println(err)
+        }
+    }
 	cmd := exec.Command("git", "pull", "-f")
 	cmd.Dir = "./goodjob-img"
 	output, err := cmd.CombinedOutput()

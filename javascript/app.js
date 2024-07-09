@@ -6,6 +6,7 @@ const lodash = require('lodash');
 const request = require('sync-request');
 const app = express();
 const img_path = __dirname + '/goodjob-img/resources/';
+const res_path = "https://gitee.com/SmallK111407/goodjob-img"
 const img_dict = {};
 
 const alia_json = JSON.parse(
@@ -50,6 +51,14 @@ const ReadPath = () => {
 };
 
 const update = () => {
+    if (!fs.existsSync(__dirname + '/goodjob-img')) {
+        exec('git clone' + res_path, (err, stdout, stderr) => {
+            if (err) { console.log(err) } else {};
+            if (stderr) { console.log(stderr) } else {};
+            if (stdout) { console.log(stdout) } else {};
+        });
+    };
+
     exec('cd '+ __dirname +'/goodjob-img && git pull -f', (err, stdout, stderr) => {
         if (err) { console.log(err) } else {};
         if (stderr) { console.log(stderr) } else {};
